@@ -59,9 +59,11 @@ exports.deleteTour = catchAsync(async (req, res, next) => {
 
 exports.getTourStats = catchAsync(async (req, res, next) => {
   const stats = await Tour.aggregate([
+    // Filter out tours with a rating greater than or equal to 4.5
     {
       $match: { ratingsAverage: { $gte: 4.5 } }
     },
+    // Group by difficulty and calculate the average rating, number of tours, and average price
     {
       $group: {
         _id: "$difficulty",
@@ -73,6 +75,7 @@ exports.getTourStats = catchAsync(async (req, res, next) => {
         maxPrice: { $max: "$price" }
       }
     },
+    // Sort by average rating in ascending order
     {
       $sort: { avgRating: 1 }
     }
