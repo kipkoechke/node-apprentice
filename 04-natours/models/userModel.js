@@ -50,7 +50,7 @@ const userSchema = new mongoose.Schema({
   }
 });
 
-// MIDDLEWARE: runs before.save() and.create() but only if password was modified
+// MIDDLEWARE Hook: runs before .save() and .create() to hash the password and remove the passwordConfirm field
 userSchema.pre("save", async function(next) {
   // Check if password was modified before hashing it
   if (!this.isModified("password")) return next();
@@ -61,6 +61,7 @@ userSchema.pre("save", async function(next) {
   next();
 });
 
+// MIDDLEWARE Hook: runs before.save() and.create() but only if password was modified
 userSchema.pre("save", function(next) {
   // Only update passwordChangedAt if password was actually modified
   if (!this.isModified("password") || this.isNew) return next();
@@ -70,12 +71,13 @@ userSchema.pre("save", function(next) {
   next();
 });
 
+// MIDDLEWARE Hook: runs before.find() and.findOne() but only returns active users
 userSchema.pre(/^find/, function(next) {
   this.find({ active: { $ne: false } });
   next();
 });
 
-// INSTANCE METHODS: check if candidate password matches the stored hashed password
+// INSTANCE METHODS: Compares a candidate password with the hashed one in the database.
 userSchema.methods.correctPassword = async function(
   candidatePassword,
   userPassword
@@ -84,7 +86,7 @@ userSchema.methods.correctPassword = async function(
   return await bcrypt.compare(candidatePassword, userPassword);
 };
 
-//INSTANCE METHOD: check whether the password was changed
+//INSTANCE METHOD: Checks if the password was changed after a given timestamp.
 userSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
   if (this.passwordChangedAt) {
     const changedTimestamp = parseInt(
@@ -97,6 +99,7 @@ userSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
   return false;
 };
 
+// INSTANCE METHOD: Generates a reset token, hashes it, and stores it in the database.
 userSchema.methods.createPasswordResetToken = function() {
   // Generate a random token
   const resetToken = crypto.randomBytes(32).toString("hex");
