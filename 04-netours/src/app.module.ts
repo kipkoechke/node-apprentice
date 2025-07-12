@@ -8,9 +8,9 @@ import configuration from './config/configuration';
 import { AuthModule } from './modules/auth/auth.module';
 
 import { DatabaseModule } from './database/database.module';
-import { ReviewsModule } from './modules/reviews/reviews.module';
-import { ToursModule } from './modules/tours/tours.module';
-import { UsersModule } from './modules/users/users.module';
+import { ReviewModule } from './modules/reviews/reviews.module';
+import { TourModule } from './modules/tours/tours.module';
+import { UserModule } from './modules/users/users.module';
 
 dotenv.config();
 const config = configuration();
@@ -23,9 +23,9 @@ const config = configuration();
     // TypeOrmModule.forRoot(dataSourceOptions),
     DatabaseModule,
     AuthModule,
-    UsersModule,
-    ReviewsModule,
-    ToursModule,
+    UserModule,
+    ReviewModule,
+    TourModule,
   ],
   controllers: [AppController],
   providers: [AppService],

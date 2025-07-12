@@ -68,14 +68,14 @@ export class User {
 
   @BeforeInsert()
   async hashPassword() {
-    this.password = await bcrypt.hash(this.password, 10);
+    this.password = await bcrypt.hash(this.password, 12);
   }
 
   @BeforeUpdate()
   async hashPasswordOnUpdate() {
     // Only hash password if it was modified
     if (this.password) {
-      this.password = await bcrypt.hash(this.password, 10);
+      this.password = await bcrypt.hash(this.password, 12);
     }
   }
 

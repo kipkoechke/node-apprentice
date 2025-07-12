@@ -70,7 +70,7 @@ export class AuthService {
 
     const user = await this.userRepository.findOne({
       where: { email },
-      select: ['id', 'email', 'name', 'role', 'photo', 'password'], // Need to explicitly select password as it's excluded by default
+      select: ['id', 'email', 'name', 'role', 'photo', 'password'],
     });
 
     if (!user || !(await user.validatePassword(password))) {

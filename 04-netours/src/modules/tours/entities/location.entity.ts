@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  Point,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Tour } from './tour.entity';
 
 @Entity()
@@ -16,7 +22,7 @@ export class Location {
   day: number;
 
   @Column('geometry', { spatialFeatureType: 'Point', srid: 4326 })
-  coordinates: string;
+  coordinates: Point;
 
   @ManyToOne(() => Tour, (tour) => tour.locations)
   tour: Tour;

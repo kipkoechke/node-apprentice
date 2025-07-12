@@ -6,79 +6,75 @@ import {
   Param,
   Patch,
   Post,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
-import { GetUser } from 'src/common/decorators/get-user.decorator';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { Roles } from 'src/common/decorators/roles.decorator';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RolesGuard } from '../auth/roles.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
 import { Role } from '../users/enums/role.enum';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
-import { UsersService } from './users.service';
+import { UserService } from './users.service';
 
-@Controller('users')
+@Controller('api/v1/users')
 @UseGuards(JwtAuthGuard)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly UserService: UserService) {}
 
-  /**
-   * Get the current user's profile
-   */
   @Get('me')
-  async getMe(@GetUser() user: User) {
-    return this.usersService.getUserById(user.id);
+  async getMe(@CurrentUser() user: User) {
+    return this.UserService.getUserById(user.id);
   }
 
-  /**
-   * Update the current user's profile
-   */
   @Patch('updateMe')
-  async updateMe(@GetUser() user: User, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.updateUser(user.id, updateUserDto);
+  @UseInterceptors(FileInterceptor('photo'))
+  async updateMe(
+    @CurrentUser() user: User,
+    @Body() updateUserDto: UpdateUserDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    const updatedUser = await this.UserService.updateMe(
+      user.id,
+      updateUserDto,
+      file,
+    );
+
+    return {
+      status: 'success',
+      data: { user: updatedUser },
+    };
   }
 
-  /**
-   * Soft delete the current user's account
-   */
   @Delete('deleteMe')
-  async deleteMe(@GetUser() user: User) {
-    return this.usersService.deleteUser(user.id);
+  async deleteMe(@CurrentUser() user: User) {
+    return this.UserService.deleteUser(user.id);
   }
 
-  /**
-   * Admin-only: Get all users
-   */
   @Get()
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
   async getAllUsers() {
-    return this.usersService.getAllUsers();
+    return this.UserService.getAllUsers();
   }
 
-  /**
-   * Admin-only: Create a new user
-   */
   @Post()
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
   async createUser(@Body() userData: Partial<User>) {
-    return this.usersService.createUser(userData);
+    return this.UserService.createUser(userData);
   }
 
-  /**
-   * Admin-only: Get a user by ID
-   */
   @Get(':id')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
   async getUser(@Param('id') id: string) {
-    return this.usersService.getUserById(id);
+    return this.UserService.getUserById(id);
   }
 
-  /**
-   * Admin-only: Update a user by ID
-   */
   @Patch(':id')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
@@ -86,16 +82,13 @@ export class UsersController {
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
   ) {
-    return this.usersService.updateUser(id, updateUserDto);
+    return this.UserService.updateUser(id, updateUserDto);
   }
 
-  /**
-   * Admin-only: Delete a user by ID
-   */
   @Delete(':id')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
   async deleteUser(@Param('id') id: string) {
-    return this.usersService.deleteUser(id);
+    return this.UserService.deleteUser(id);
   }
 }

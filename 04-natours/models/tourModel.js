@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const slugify = require("slugify");
-// const validator = require('validator');
 
 const tourSchema = new mongoose.Schema(
   {
@@ -11,7 +10,6 @@ const tourSchema = new mongoose.Schema(
       trim: true,
       maxlength: [40, "A tour name must have less or equal then 40 characters"],
       minlength: [10, "A tour name must have more or equal then 10 characters"]
-      // validate: [validator.isAlpha, 'Tour name must only contain characters']
     },
     slug: String,
     duration: {
@@ -122,18 +120,6 @@ tourSchema.pre("save", function(next) {
   next();
 });
 
-// tourSchema.pre('save', function(next) {
-//   console.log('Will save document...');
-//   next();
-// });
-
-// tourSchema.post('save', function(doc, next) {
-//   console.log(doc);
-//   next();
-// });
-
-// QUERY MIDDLEWARE
-// tourSchema.pre('find', function(next) {
 tourSchema.pre(/^find/, function(next) {
   this.find({ secretTour: { $ne: true } });
 
@@ -141,22 +127,9 @@ tourSchema.pre(/^find/, function(next) {
   next();
 });
 
-tourSchema.post(/^find/, function(docs, next) {
-  console.log(`Query took ${Date.now() - this.start} milliseconds!`);
-  next();
-});
-
 tourSchema.post(/^find/, function(next) {
   this.populate({ path: "guides", select: "-__v -passwordChangedAt" });
 });
-
-// AGGREGATION MIDDLEWARE
-// tourSchema.pre("aggregate", function(next) {
-//   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
-
-//   console.log(this.pipeline());
-//   next();
-// });
 
 const Tour = mongoose.model("Tour", tourSchema);
 

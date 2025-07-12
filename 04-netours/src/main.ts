@@ -1,13 +1,22 @@
-import { NestFactory } from '@nestjs/core';
+import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { GlobalExceptionFilter } from './common/filters/global-exception-filter';
 import { HttpExceptionFilter } from './common/filters/http-exception-filter';
+import { MulterExceptionFilter } from './common/filters/multer-exception-filter';
+import { UnifiedGlobalExceptionFilter } from './common/filters/unified-global-exception-filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Register global exception filter
-  app.useGlobalFilters(new HttpExceptionFilter(), new GlobalExceptionFilter());
+  // Get the HttpAdapterHost instance
+  const httpAdapterHost = app.get(HttpAdapterHost);
+
+  // Register global exception filters
+  app.useGlobalFilters(
+    new HttpExceptionFilter(),
+    new UnifiedGlobalExceptionFilter(httpAdapterHost),
+    new MulterExceptionFilter(),
+  );
+
   await app.listen(process.env.PORT || 3000);
 }
 bootstrap();

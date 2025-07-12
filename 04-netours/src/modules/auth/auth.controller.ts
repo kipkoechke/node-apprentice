@@ -6,7 +6,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { GetUser } from '../../common/decorators/get-user.decorator';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { User } from '../users/entities/user.entity';
 import { AuthService } from './auth.service';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
@@ -14,9 +14,9 @@ import { LoginDto } from './dto/login.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { SignupDto } from './dto/signup.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
-import { JwtAuthGuard } from './jwt-auth.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
-@Controller('auth')
+@Controller('api/v1/users')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
@@ -46,7 +46,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Patch('updateMyPassword')
   async updatePassword(
-    @GetUser() user: User,
+    @CurrentUser() user: User,
     @Body() updatePasswordDto: UpdatePasswordDto,
   ) {
     return this.authService.updatePassword(user.id, updatePasswordDto);

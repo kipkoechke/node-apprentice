@@ -1,10 +1,15 @@
+import slugify from 'slugify';
 import {
+  BeforeInsert,
+  BeforeUpdate,
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinTable,
   ManyToMany,
   OneToMany,
+  Point,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Review } from '../../reviews/entities/review.entity';
@@ -13,6 +18,9 @@ import { Difficulty } from '../enums/difficulty.enum';
 import { Location } from './location.entity';
 
 @Entity()
+@Index(['price', 'ratingsAverage'])
+@Index(['slug'])
+@Index(['startLocation'], { spatial: true })
 export class Tour {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -53,7 +61,7 @@ export class Tour {
   @Column()
   imageCover: string;
 
-  @Column('text', { array: true })
+  @Column('text', { array: true, default: [] })
   images: string[];
 
   @CreateDateColumn()
@@ -66,7 +74,7 @@ export class Tour {
   secretTour: boolean;
 
   @Column('geometry', { spatialFeatureType: 'Point', srid: 4326 })
-  startLocation: string;
+  startLocation: Point;
 
   @OneToMany(() => Location, (location) => location.tour, { cascade: true })
   locations: Location[];
@@ -76,9 +84,23 @@ export class Tour {
 
   @ManyToMany(() => User, (user) => user.tours)
   @JoinTable({
-    name: 'tour_guides', // Join table name
+    name: 'tour_guides',
     joinColumn: { name: 'tourId', referencedColumnName: 'id' },
     inverseJoinColumn: { name: 'userId', referencedColumnName: 'id' },
   })
   guides: User[];
+
+  // Virtual field for duration in weeks
+  getDurationWeeks(): number {
+    return this.duration / 7;
+  }
+
+  // Hooks for slug generation
+  @BeforeInsert()
+  @BeforeUpdate()
+  generateSlug() {
+    if (this.name) {
+      this.slug = slugify(this.name, { lower: true });
+    }
+  }
 }
